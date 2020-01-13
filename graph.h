@@ -1,11 +1,12 @@
 //
-// Created by no on 1/8/20.
+// Created by n-0 on 1/8/20.
 //
 
 #ifndef GRAPH_DB_TESTAT_GRAPH_H
 #define GRAPH_DB_TESTAT_GRAPH_H
 
 #include <stdint-gcc.h>
+#include <stdbool.h>
 
 #define MAX_STRING 222
 #define MAX_PROPERTIES 20
@@ -14,7 +15,6 @@
 
 typedef char key_value[2][MAX_STRING];
 
-<<<<<<< HEAD
 typedef enum {
     NO_ERROR,
     STRING_TOO_BIG,
@@ -62,8 +62,6 @@ typedef union {
     void *ud;
 } FLEXIBLE_T;
 
-=======
->>>>>>> parent of 27800a3... Changed structs of edge and node
 /**
  * edge has an own id
  * and uses the id of vertices
@@ -87,22 +85,14 @@ typedef struct {
 /**
  * vertex has an id
  * a optional label for
-<<<<<<< HEAD
  * grouping vertices.
  * The property_* attributes
  * allow setting name value pairs
  * with associated types.
-=======
- * grouping nodes, a
- * list of tuples for the
- * keys (name, type) and
- * a list of values
->>>>>>> parent of 27800a3... Changed structs of edge and node
  */
 typedef struct {
     uint64_t id;
     char *label;
-<<<<<<< HEAD
     int property_size;
     char **property_names;
     PROPERTY_T *property_types;
@@ -124,29 +114,6 @@ typedef struct {
  * the id of a vertex is its
  * index in the list.
  */
-=======
-    key_value keys[MAX_PROPERTIES];
-    int size_keys;
-    void *values;
-} node;
-
-/**
- * edge has an id
- * and uses the id of nodes
- * for start and end points
- * and can take an optional
- * key with an associated value
- */
-typedef struct {
-    uint64_t id;
-    char start[MAX_STRING];
-    char end[MAX_STRING];
-    key_value key;
-    void *value;
-} edge;
-
-
->>>>>>> parent of 27800a3... Changed structs of edge and node
 typedef struct {
     uint64_t id;
     char *name;
@@ -158,15 +125,9 @@ typedef struct {
 
 uint64_t create_id();
 
-<<<<<<< HEAD
 vertex *create_vertex(char *label, ERROR_CODE *error);
 
 void vertex_add_property(vertex *n, char *property_name, char *property_type, void *property_value);
-=======
-node *create_node(char *label);
-
-node *node_add_property(node *n, key_value key, void *value);
->>>>>>> parent of 27800a3... Changed structs of edge and node
 
 edge *create_edge(vertex *start_vertex, vertex *end_node, bool vertex, ERROR_CODE *error);
 
