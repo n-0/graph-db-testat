@@ -19,13 +19,14 @@ typedef enum {
     NO_ERROR,
     STRING_TOO_BIG,
     INCORRECT_TYPE,
+    OUT_OF_MEMORY,
     NO_ID_LEFT,
 } ERROR_CODE;
 
 /**
  * PROPERTY_T is a type
  * for a flexible property
- * (node, edges).
+ * (vertex, edges).
  */
 typedef enum {
     PROP_INT_T,
@@ -37,14 +38,15 @@ typedef enum {
     PROP_DOUBLE_T,
     PROP_DOUBLE_A_T,
     PROP_BOOL_T,
-    PROP_BOO_A_T
+    PROP_BOO_A_T,
+    PROP_UNDEFINED,
 } PROPERTY_T;
 
 /**
  * FLEXIBLE_T is used
  * to store data of multiple
  * types in one property
- * of struct like node, edge.
+ * of struct like vertex, edge.
  */
 typedef union {
     int *i;
@@ -57,12 +59,33 @@ typedef union {
     double *da;
     bool *b;
     bool *ba;
+    void *ud;
 } FLEXIBLE_T;
 
 /**
- * node has an id
+ * edge has an own id
+ * and uses the id of vertices
+ * for start/end points.
+ * It can take an optional
+ * property name, value pair
+ * with an associated type (weight).
+ * If start and end only have their
+ * literal meaning if directed is true.
+ */
+typedef struct {
+    uint64_t id;
+    uint64_t start;
+    uint64_t end;
+    char *property_name;
+    PROPERTY_T property_type;
+    FLEXIBLE_T *property_value;
+    bool directed;
+} edge;
+
+/**
+ * vertex has an id
  * a optional label for
- * grouping nodes.
+ * grouping vertices.
  * The property_* attributes
  * allow setting name value pairs
  * with associated types.
@@ -70,59 +93,48 @@ typedef union {
 typedef struct {
     uint64_t id;
     char *label;
+    int property_size;
     char **property_names;
     PROPERTY_T *property_types;
     FLEXIBLE_T *property_values;
-    int property_size;
-} node;
+    int edges_size;
+    edge *edges[];
+} vertex;
 
-/**
- * edge has an own id
- * and uses the id of nodes
- * for start/end points
- * and can take an optional
- * property name, value pair
- * with an associated type.
- */
-typedef struct {
-    uint64_t id;
-    char start[MAX_STRING];
-    char end[MAX_STRING];
-    char *property_name;
-    PROPERTY_T property_type;
-    FLEXIBLE_T property_value;
-} edge;
 
 /**
  * graph is a wrapper
- * for presenting one
- * graph database with
- * a name, path to the
- * file where the db
+ * for a graph database
+ * with a name, path to
+ * the file where the db
  * is stored and an id
  * for interaction.
- * Nodes are accessed
- * by edges.
+ * The representation is
+ * an adjacency list, where
+ * the id of a vertex is its
+ * index in the list.
  */
 typedef struct {
-    char name[MAX_STRING];
-    char path[MAX_STRING];
+    uint64_t id;
+    char *name;
+    char *path;
     uint64_t max_id;
-    edge edges[];
+    int size_vertices;
+    vertex **vertices;
 } graph;
 
 uint64_t create_id();
 
-node *create_node(char *label, ERROR_CODE *error);
+vertex *create_vertex(char *label, ERROR_CODE *error);
 
-node *node_add_property(node *n, char *property_name, char *property_type, void *property_value);
+void vertex_add_property(vertex *n, char *property_name, char *property_type, void *property_value);
 
-edge *create_edge(char *start_id, char *end_id, char *label, void *value);
+edge *create_edge(vertex *start_vertex, vertex *end_node, bool vertex, ERROR_CODE *error);
 
-node *find_node_by_id(char *id);
+vertex *find_vertex_by_id(char *id);
 
-node *find_node_by_label_property(char *label, char *property, void *value);
+vertex *find_vertex_by_label_property(char *label, char *property, void *value);
 
-node *update_node(node *n, char *property, void *value);
+vertex *update_vertex(vertex *n, char *property, void *value);
 
 #endif //GRAPH_DB_TESTAT_GRAPH_H

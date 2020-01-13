@@ -10,7 +10,7 @@
  * TODO (DIFFICULT)
  * make it possible to
  * expand number of attributes
- * of a node and keep already
+ * of a vertex and keep already
  * registered values
  */
 
@@ -20,6 +20,32 @@
  */
 
 uint64_t MAX_ID;
+
+PROPERTY_T find_property_type(char *property_type) {
+    if (strncasecmp(property_type, "INT", sizeof("INT")) == 0) {
+        return PROP_INT_T;
+    } else {
+        return PROP_UNDEFINED;
+    }
+}
+
+FLEXIBLE_T* create_value_by_type(PROPERTY_T p_type, void *p_value) {
+    FLEXIBLE_T *value = (FLEXIBLE_T*) malloc(sizeof(FLEXIBLE_T));
+    switch (p_type) {
+        case PROP_INT_T:
+            value->i = (int*) p_value;
+            return value;
+        case PROP_CHAR_T:
+            value->c = (char*) p_value;
+            return value;
+        case PROP_STRING_T:
+            value->s = (char*) p_value;
+            return value;
+        default:
+            value->ud = p_value;
+            return value;
+    }
+}
 
 /**
  * create_id creates a unique
@@ -39,39 +65,78 @@ uint64_t create_id(ERROR_CODE *error) {
 }
 
 /**
- * create_node creates a node
- * and allocates some memory for
- * attributes.
- * @param label char*
- * @return node*
+ * create_edge takes two vertices and creates
+ * an edge for connecting both with an id.
+ * @param start_vertex
+ * @param end_vertex
+ * @param error
+ * @return edge*
  */
-node *create_node(char *label, ERROR_CODE *error) {
-    node *n = (node *) malloc(sizeof(node));
 
-    n->id = create_id(error);
-    if (*error != NO_ERROR) goto error_no_id;
-
-    n->property_size = 0;
-    n->label = label;
-    n->property_names = (char **) malloc(20 * MAX_STRING * sizeof(char *));
-    n->property_types = (PROPERTY_T *) malloc(20 * sizeof(PROPERTY_T));
-    n->property_values = (FLEXIBLE_T *) malloc(20 * sizeof(FLEXIBLE_T));
-    return n;
-
-    error_no_id:
-    return n;
+edge *create_edge(vertex *start_vertex, vertex *end_vertex, bool directed, ERROR_CODE *error) {
+    edge *e = (edge*) malloc(sizeof(edge));
+    uint64_t id = create_id(error);
+    if (error != NO_ERROR) return e;
+    e->id = id;
+    e->start = start_vertex->id;
+    e->end = end_vertex->id;
+    e->directed = directed;
+    return e;
 }
 
 /**
- * node_add_property adds a
- * property to a node.
- * @param n node*
+ * add_property_edge adds an property to
+ * an edge as long as there isn't already
+ * one defined.
+ * @param e
+ * @param property_name
+ * @param property_type
+ * @param property_value
+ * @return
+ */
+void add_property_edge(edge *e, char* property_name, char* property_type, void* property_value, ERROR_CODE *error) {
+    if (e->property_name != NULL) return;
+    e->property_name = property_name;
+    PROPERTY_T e_type  = find_property_type(property_type);
+    FLEXIBLE_T *e_value = create_value_by_type(e_type, property_value);
+    e->property_type = e_type;
+    e->property_value = e_value;
+}
+
+/**
+ * create_vertex creates a vertex
+ * and allocates some memory for
+ * attributes.
+ * @param label char*
+ * @return vertex*
+ */
+vertex *create_vertex(char *label, ERROR_CODE *error) {
+    vertex *v = (vertex *) malloc(sizeof(vertex));
+
+    v->id = create_id(error);
+    if (*error != NO_ERROR) goto error_no_id;
+
+    v->property_size = 0;
+    v->label = label;
+    v->property_names = (char **) malloc(20 * MAX_STRING * sizeof(char *));
+    v->property_types = (PROPERTY_T *) malloc(20 * sizeof(PROPERTY_T));
+    v->property_values = (FLEXIBLE_T *) malloc(20 * sizeof(FLEXIBLE_T));
+    return v;
+
+    error_no_id:
+    return v;
+}
+
+/**
+ * vertex_add_property adds a
+ * property to a vertex.
+ * @param n vertex*
  * @param property_name char*
  * @param property_type char*
  * @param property_value void*
- * @return node*
+ * @return vertex*
  */
-node *node_add_property(node *n, char *property_name, char *property_type, void *property_value) {
+void vertex_add_property(vertex *v, char *property_name, char *property_type, void *property_value) {
     PROPERTY_T type;
     FLEXIBLE_T value;
     /**
@@ -89,10 +154,59 @@ node *node_add_property(node *n, char *property_name, char *property_type, void 
         type = PROP_FLOAT_T;
         (value.f) = (float *) property_value;
     }
-    n->property_names[n->property_size] = property_name;
-    n->property_types[n->property_size] = type;
-    n->property_values[n->property_size] = value;
-    n->property_size++;
-    return n;
+    v->property_names[v->property_size] = property_name;
+    v->property_types[v->property_size] = type;
+    v->property_values[v->property_size] = value;
+    v->property_size++;
 }
 
+/**
+ * add_edge_to_vertex adds
+ * a connection (edge) to a
+ * node to its list of edges.
+ * @param v
+ * @param e
+ */
+void add_edge_to_vertex(vertex *v, edge *e) {
+    v->edges[v->edges_size+1] = e;
+}
+
+
+/**
+ * create_graph creates a graph for
+ * storing a database based on vertexs
+ * and edges.
+ * @param graph_name
+ * @return
+ */
+graph *create_graph(char *graph_name, char *graph_path, ERROR_CODE *error) {
+    graph *g = (graph*) malloc(sizeof(graph));
+    char g_name[MAX_STRING];
+    if (strlen(graph_name) > MAX_STRING) {
+        *error = STRING_TOO_BIG;
+        return g;
+    }
+    strncmp(g_name, graph_name, MAX_STRING - 1);
+    uint64_t id = create_id(error);
+    if (*error == NO_ERROR) return g;
+    g->id = id;
+    g->name = g_name;
+    g->size_vertices = 0;
+    return g;
+}
+
+void add_vertex_to_graph(graph *g, vertex *v, ERROR_CODE *error) {
+    if (v->id > g->size_vertices) {
+        vertex **new_start = realloc(g->vertices, v->id);
+        if (new_start == NULL) {
+            *error = OUT_OF_MEMORY;
+            return;
+        }
+        g->vertices = new_start;
+        g->size_vertices = v->id;
+    }
+}
+
+void add_edge_to_graph(graph *g, edge)
+
+vertex *find_vertex_width;
