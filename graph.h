@@ -50,15 +50,15 @@ typedef enum {
  */
 typedef union {
     int *i;
-    int *ia;
+    int **ia;
     float *f;
-    float *fa;
+    float **fa;
     char *s;
     char *c;
     double *d;
-    double *da;
+    double **da;
     bool *b;
-    bool *ba;
+    bool **ba;
     void *ud;
 } FLEXIBLE_T;
 
@@ -96,7 +96,7 @@ typedef struct {
     int property_size;
     char **property_names;
     PROPERTY_T *property_types;
-    FLEXIBLE_T *property_values;
+    FLEXIBLE_T **property_values;
     int edges_size;
     edge *edges; // Is dynamic array better?
 } vertex;

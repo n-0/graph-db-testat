@@ -177,22 +177,9 @@ vertex *create_vertex(char *label, ERROR_CODE *error) {
  */
 void vertex_add_property(vertex *v, char *property_name, char *property_type, void *property_value) {
     PROPERTY_T type;
-    FLEXIBLE_T value;
-    /**
-     * TODO (EASY)
-     * Expand if else with all other
-     * types.
-     */
-    if (strncmp(property_type, "INT", sizeof("INT")) == 0) {
-        type = PROP_INT_T;
-        (value.i) = (int *) property_value;
-    } else if (strncmp(property_type, "STRING", sizeof("STRING")) == 0) {
-        type = PROP_STRING_T;
-        (value.s) = (char *) property_value;
-    } else if (strncmp(property_type, "FLOAT", sizeof("FLOAT")) == 0) {
-        type = PROP_FLOAT_T;
-        (value.f) = (float *) property_value;
-    }
+    FLEXIBLE_T *value;
+    type = find_property_type(property_type);
+    value = create_value_by_type(type, property_value);
     v->property_names[v->property_size] = property_name;
     v->property_types[v->property_size] = type;
     v->property_values[v->property_size] = value;
