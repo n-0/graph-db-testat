@@ -22,8 +22,26 @@
 uint64_t MAX_ID;
 
 PROPERTY_T find_property_type(char *property_type) {
-    if (strncmp(property_type, "INT", sizeof("INT")) == 0) {
+    if (strncasecmp(property_type, "INT", sizeof("INT")) == 0) {
         return PROP_INT_T;
+    } else if (strncasecmp(property_type, "INT_A", sizeof("INT_A")) == 0) {
+        return PROP_INT_A_T;
+    } else if (strncasecmp(property_type, "FLOAT", sizeof("FLOAT")) == 0) {
+        return PROP_FLOAT_T;
+    } else if (strncasecmp(property_type, "FLOAT_A", sizeof("FLOAT_A")) == 0) {
+        return PROP_FLOAT_A_T;
+    } else if (strncasecmp(property_type, "STRING", sizeof("STRING")) == 0) {
+        return PROP_STRING_T;
+    } else if (strncasecmp(property_type, "CHAR", sizeof("CHAR")) == 0) {
+        return PROP_CHAR_T;
+    } else if (strncasecmp(property_type, "DOUBLE", sizeof("DOUBLE")) == 0) {
+        return PROP_DOUBLE_T;
+    } else if (strncasecmp(property_type, "DOUBLE_A", sizeof("DOUBLE_A")) == 0) {
+        return PROP_DOUBLE_A_T;
+    } else if (strncasecmp(property_type, "BOOL", sizeof("BOOL")) == 0) {
+        return PROP_BOOL_T;
+    } else if (strncasecmp(property_type, "BOOL_A", sizeof("BOOL_A")) == 0) {
+        return PROP_BOOL_A_T;
     } else {
         return PROP_UNDEFINED;
     }
@@ -35,11 +53,32 @@ FLEXIBLE_T* create_value_by_type(PROPERTY_T p_type, void *p_value) {
         case PROP_INT_T:
             value->i = (int*) p_value;
             return value;
+        case PROP_INT_A_T:
+            value->ia = (int**) p_value;
+            return value;
+        case PROP_FLOAT_T:
+            value->f = (float*) p_value;
+            return value;
+        case PROP_FLOAT_A_T:
+            value->fa = (float**) p_value;
+            return value;
         case PROP_CHAR_T:
             value->c = (char*) p_value;
             return value;
         case PROP_STRING_T:
             value->s = (char*) p_value;
+            return value;
+        case PROP_DOUBLE_T:
+            value->d = (double*) p_value;
+            return value;
+        case PROP_DOUBLE_A_T:
+            value->da = (double**) p_value;
+            return value;
+        case PROP_BOOL_T:
+            value->b = (bool*) p_value;
+            return value;
+        case PROP_BOOL_A_T:
+            value->ba = (bool**) p_value;
             return value;
         default:
             value->ud = p_value;
