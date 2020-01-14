@@ -1,5 +1,5 @@
 //
-// Created by n-0 on 1/8/20.
+// Created by n-0 & jor-dro on 1/8/20.
 //
 
 #include "graph.h"
@@ -115,7 +115,7 @@ uint64_t create_id(ERROR_CODE *error) {
 edge *create_edge(vertex *start_vertex, vertex *end_vertex, bool directed, ERROR_CODE *error) {
     edge *e = (edge*) malloc(sizeof(edge));
     uint64_t id = create_id(error);
-    if (error != NO_ERROR) return e;
+    if (*error != NO_ERROR) return e;
     e->id = id;
     e->start = start_vertex->id;
     e->end = end_vertex->id;
@@ -186,73 +186,81 @@ void vertex_add_property(vertex *v, char *property_name, char *property_type, vo
     v->property_size++;
 }
 
-void allocate_edge_for_vertex(vertex *v, edge *e, ERROR_CODE *error) {
-    if (v->edges_size < e->id) {
-        edge *new_start = realloc(v->edges, e->id);
-        if (new_start == NULL) {
-            *error = OUT_OF_MEMORY;
-            return;
-        }
-        v->edges = new_start;
+/**
+ * find_index_vertex_adj_list finds
+ * the index of a vertex pointer
+ * in a list of vertices.
+ * @param list_vertices
+ * @param id
+ * @return
+ */
+int find_index_vertex_adj_list(graph *g, uint64_t id) {
+    int i = 0;
+    while (true) {
+        if (g->vertices[i]->v_pointer->id == id) return i;
+        if (i > g->vertices[i]->list_size) return -1;
+        i++;
     }
-    if (v->edges_size < e->id) {
-        edge *new_start = realloc(v->edges, e->id);
-        if (new_start == NULL) {
-            *error = OUT_OF_MEMORY;
-            return;
-        }
-        v->edges = new_start;
-    }
-    v->edges[e->id] = *e;
-    v->edges_size++;
 }
 
-void allocate_edge_for_graph(graph *g, edge *e, ERROR_CODE *error);
-
 /**
- * add_edge_to_vertex adds
- * a connection (edge) to a
- * node to its list of edges.
- * @param v
- * @param e
+ * find_index_edge finds
+ * the index of a vertex pointer
+ * in a list of vertices.
+ * @param list_vertices
+ * @param id
+ * @return
  */
-void add_edge_to_vertex(graph *g, vertex *v1, vertex *v2, edge *e, ERROR_CODE *error) {
-    if (v1->edges_size < e->id) {
-        edge *new_start = realloc(v1->edges, e->id);
-        if (new_start == NULL) {
-            *error = OUT_OF_MEMORY;
-            return;
-        }
-        v1->edges = new_start;
-    }
-    if (v1->edges_size < e->id) {
-        edge *new_start = realloc(v1->edges, e->id);
-        if (new_start == NULL) {
-            *error = OUT_OF_MEMORY;
-            return;
-        }
-        v1->edges = new_start;
-    }
-    v1->edges[e->id] = *e;
-    vertex *new_start = realloc(g->vertices[v1->id], v1->edges_size)
+int find_index_edge(vertex **list_edge, uint64_t id) {
+    int i = 0;
+    while ((*(*(list_edge + i))).id != id) i++;
+    return i;
+}
+
+void allocate_vertex_graph(graph *g, vertex *v, ERROR_CODE *error) {
+    adjacency_list **new_start = realloc(g->vertices, g->size_vertices + 1);
     if (new_start == NULL) {
         *error = OUT_OF_MEMORY;
         return;
     }
-    g->vertices[v->id] = new_start;
-    v->edges_size++;
-    if (!e->directed) {
-        g->vertices[v->id] =
-    } else {
-        if (e->start == v->id) {
-
-        } else {
-
-        }
-    }
-    g->vertices[v->id][]
+    g->vertices = new_start;
 }
 
+/**
+ * allocate_edge_for_graph allocates the memory
+ * for the vertices in the adjacency list of
+ * a vertex.
+ * @param g
+ * @param id
+ * @param e
+ * @param error
+ */
+void allocate_edge_for_graph(graph *g, vertex *v1, vertex *v2, edge *e, ERROR_CODE *error) {
+    int index = find_index_vertex_adj_list(g, v1->id);
+    if (index == -1) {
+        *error = NOT_FOUND;
+        return;
+    }
+    vertex **new_start = realloc(g->vertices[index]->list, g->vertices[index]->list_size + 1);
+    if (new_start == NULL) {
+        *error = OUT_OF_MEMORY;
+        return;
+    }
+    g->vertices[index]->list = new_start;
+    g->vertices[index]->list[g->vertices[index]->list_size] = v2;
+    g->vertices[index]->list_size++;
+};
+
+void allocate_edge_vertex(vertex *v, edge *e, ERROR_CODE *error) {
+    edge **new_start = realloc(v->edges, v->edges_size + 1);
+    if (new_start == NULL) {
+        *error = OUT_OF_MEMORY;
+        return;
+    }
+    v->edges = new_start;
+    v->edges[v->edges_size] = e;
+    v->edges_size++;
+}
 
 /**
  * create_graph creates a graph for
@@ -278,17 +286,53 @@ graph *create_graph(char *graph_name, char *graph_path, ERROR_CODE *error) {
 }
 
 void add_vertex_to_graph(graph *g, vertex *v, ERROR_CODE *error) {
-    if (v->id > g->size_vertices) {
-        vertex **new_start = realloc(g->vertices, v->id);
-        if (new_start == NULL) {
+    allocate_vertex_graph(g, v, error);
+    if (*error != NO_ERROR) return;
+    adjacency_list *adj = (adjacency_list *) malloc(sizeof(adjacency_list));
+    vertex **v_list = (vertex **) malloc(sizeof(vertex **));
+    adj->vertices_size = 0;
+    adj->list = v_list;
+    adj->list_size = 0;
+    adj->v_pointer = v;
+    g->vertices[g->size_vertices] = adj;
+    g->size_vertices++;
+}
+
+void add_edge_to_graph(graph *g, vertex *v1, vertex *v2, edge *e, ERROR_CODE *error) {
+    allocate_edge_vertex(v1, e, error);
+    if (*error != NO_ERROR) {
+        *error = OUT_OF_MEMORY;
+        return;
+    }
+    allocate_edge_vertex(v2, e, error);
+    if (*error != NO_ERROR) {
+        *error = OUT_OF_MEMORY;
+        return;
+    }
+    if (!e->directed) {
+        allocate_edge_for_graph(g, v1, v2, e, error);
+        if (*error != NO_ERROR) {
             *error = OUT_OF_MEMORY;
             return;
         }
-        g->vertices = new_start;
-        g->size_vertices = v->id;
+        allocate_edge_for_graph(g, v2, v1, e, error);
+        if (*error != NO_ERROR) {
+            *error = OUT_OF_MEMORY;
+            return;
+        }
+    } else {
+        if (v1->id == e->end) {
+            allocate_edge_for_graph(g, v1, v2, e, error);
+            if (*error != NO_ERROR) {
+                *error = OUT_OF_MEMORY;
+                return;
+            }
+        } else {
+            allocate_edge_for_graph(g, v2, v1, e, error);
+            if (*error != NO_ERROR) {
+                *error = OUT_OF_MEMORY;
+                return;
+            }
+        }
     }
 }
-
-//void add_edge_to_graph(graph *g, edge)
-
-//vertex *find_vertex_width;

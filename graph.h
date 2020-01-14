@@ -19,6 +19,7 @@ typedef enum {
     NO_ERROR,
     STRING_TOO_BIG,
     INCORRECT_TYPE,
+    NOT_FOUND,
     OUT_OF_MEMORY,
     NO_ID_LEFT,
 } ERROR_CODE;
@@ -98,8 +99,15 @@ typedef struct {
     PROPERTY_T *property_types;
     FLEXIBLE_T **property_values;
     int edges_size;
-    edge *edges; // Is dynamic array better?
+    edge **edges; // Is dynamic array better?
 } vertex;
+
+typedef struct {
+    int vertices_size;
+    vertex *v_pointer;
+    int list_size;
+    vertex **list;
+} adjacency_list;
 
 
 /**
@@ -120,7 +128,7 @@ typedef struct {
     char *path;
     uint64_t max_id;
     int size_vertices;
-    vertex **vertices;
+    adjacency_list **vertices;
 } graph;
 
 uint64_t create_id();
@@ -129,12 +137,18 @@ vertex *create_vertex(char *label, ERROR_CODE *error);
 
 void vertex_add_property(vertex *n, char *property_name, char *property_type, void *property_value);
 
-edge *create_edge(vertex *start_vertex, vertex *end_node, bool vertex, ERROR_CODE *error);
+edge *create_edge(vertex *start_vertex, vertex *end_node, bool directed, ERROR_CODE *error);
 
 vertex *find_vertex_by_id(char *id);
 
 vertex *find_vertex_by_label_property(char *label, char *property, void *value);
 
 vertex *update_vertex(vertex *n, char *property, void *value);
+
+graph *create_graph(char *graph_name, char *graph_path, ERROR_CODE *error);
+
+void add_edge_to_graph(graph *g, vertex *v1, vertex *v2, edge *e, ERROR_CODE *error);
+
+void add_vertex_to_graph(graph *g, vertex *v, ERROR_CODE *error);
 
 #endif //GRAPH_DB_TESTAT_GRAPH_H
