@@ -38,7 +38,7 @@ typedef enum {
     PROP_DOUBLE_T,
     PROP_DOUBLE_A_T,
     PROP_BOOL_T,
-    PROP_BOO_A_T,
+    PROP_BOOL_A_T,
     PROP_UNDEFINED,
 } PROPERTY_T;
 
