@@ -22,7 +22,7 @@
 uint64_t MAX_ID;
 
 PROPERTY_T find_property_type(char *property_type) {
-    if (strncasecmp(property_type, "INT", sizeof("INT")) == 0) {
+    if (strncmp(property_type, "INT", sizeof("INT")) == 0) {
         return PROP_INT_T;
     } else {
         return PROP_UNDEFINED;
@@ -160,6 +160,29 @@ void vertex_add_property(vertex *v, char *property_name, char *property_type, vo
     v->property_size++;
 }
 
+void allocate_edge_for_vertex(vertex *v, edge *e, ERROR_CODE *error) {
+    if (v->edges_size < e->id) {
+        edge *new_start = realloc(v->edges, e->id);
+        if (new_start == NULL) {
+            *error = OUT_OF_MEMORY;
+            return;
+        }
+        v->edges = new_start;
+    }
+    if (v->edges_size < e->id) {
+        edge *new_start = realloc(v->edges, e->id);
+        if (new_start == NULL) {
+            *error = OUT_OF_MEMORY;
+            return;
+        }
+        v->edges = new_start;
+    }
+    v->edges[e->id] = *e;
+    v->edges_size++;
+}
+
+void allocate_edge_for_graph(graph *g, edge *e, ERROR_CODE *error);
+
 /**
  * add_edge_to_vertex adds
  * a connection (edge) to a
@@ -167,8 +190,41 @@ void vertex_add_property(vertex *v, char *property_name, char *property_type, vo
  * @param v
  * @param e
  */
-void add_edge_to_vertex(vertex *v, edge *e) {
-    v->edges[v->edges_size+1] = e;
+void add_edge_to_vertex(graph *g, vertex *v1, vertex *v2, edge *e, ERROR_CODE *error) {
+    if (v1->edges_size < e->id) {
+        edge *new_start = realloc(v1->edges, e->id);
+        if (new_start == NULL) {
+            *error = OUT_OF_MEMORY;
+            return;
+        }
+        v1->edges = new_start;
+    }
+    if (v1->edges_size < e->id) {
+        edge *new_start = realloc(v1->edges, e->id);
+        if (new_start == NULL) {
+            *error = OUT_OF_MEMORY;
+            return;
+        }
+        v1->edges = new_start;
+    }
+    v1->edges[e->id] = *e;
+    vertex *new_start = realloc(g->vertices[v1->id], v1->edges_size)
+    if (new_start == NULL) {
+        *error = OUT_OF_MEMORY;
+        return;
+    }
+    g->vertices[v->id] = new_start;
+    v->edges_size++;
+    if (!e->directed) {
+        g->vertices[v->id] =
+    } else {
+        if (e->start == v->id) {
+
+        } else {
+
+        }
+    }
+    g->vertices[v->id][]
 }
 
 
@@ -207,6 +263,6 @@ void add_vertex_to_graph(graph *g, vertex *v, ERROR_CODE *error) {
     }
 }
 
-void add_edge_to_graph(graph *g, edge)
+//void add_edge_to_graph(graph *g, edge)
 
-vertex *find_vertex_width;
+//vertex *find_vertex_width;

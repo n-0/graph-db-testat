@@ -98,7 +98,7 @@ typedef struct {
     PROPERTY_T *property_types;
     FLEXIBLE_T *property_values;
     int edges_size;
-    edge *edges[];
+    edge *edges; // Is dynamic array better?
 } vertex;
 
 

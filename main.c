@@ -16,7 +16,7 @@
 
 int main() {
     ERROR_CODE error = NO_ERROR;
-    node *n = create_node("example", &error);
+    vertex *v = create_vertex("example", &error);
     if (error != NO_ERROR) {
         printf("Unable to create node\n");
         exit(1);
@@ -24,7 +24,7 @@ int main() {
     char *name = "age";
     char *type = "INT";
     int value = 19;
-    node_add_property(n, name, type, &value);
-    printf("Node label: %s\nNode value: %d\n", n->label, *n->property_values[0].i);
+    vertex_add_property(v, name, type, &value);
+    printf("Node label: %s\nNode value: %d\n", v->label, *v->property_values[0].i);
     return 0;
 }
