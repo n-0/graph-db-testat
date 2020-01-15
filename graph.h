@@ -54,7 +54,7 @@ typedef union {
     int **ia;
     float *f;
     float **fa;
-    char *s;
+    char **s;
     char *c;
     double *d;
     double **da;

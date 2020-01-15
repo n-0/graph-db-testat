@@ -23,10 +23,9 @@
    }
    char *name = "nationality";
    char *type = "STRING";
-   char value = "German";
-   vertex_add_property(v, name, type, (void *) &value);
-   printf("Node label: %s\nNode value: %s\n", v->label, *v->property_values[0].s);
-   return 0;
+    char *value = "German";
+    vertex_add_property(v, name, type, (void *) &value);
+    printf("Node label: %s\nNode value: %s\n", v->label, *(v->property_values[0][0]).s);
  }
 
 void test_graph() {
