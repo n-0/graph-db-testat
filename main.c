@@ -14,6 +14,21 @@
  * Test all functionality.
  */
 
+ void test_vertex_and_properties(){ //erstellt ein Vertex und fügt ihm Eigenschaften hinzu (wie z.B. Name, Alter etc.)
+   ERROR_CODE error = NO_ERROR;
+   vertex *v = create_vertex("Jorgos", &error);
+   if (error != NO_ERROR) {
+     printf("Unable to create node\n");
+     return;
+   }
+   char *name = "nationality";
+   char *type = "STRING";
+   char value = "German";
+   vertex_add_property(v, name, type, (void *) &value);
+   printf("Node label: %s\nNode value: %s\n", v->label, *v->property_values[0].s);
+   return 0;
+ }
+
 void test_graph() {
     ERROR_CODE error = NO_ERROR;
     char *graph_name = "test_graph";
