@@ -70,6 +70,7 @@ void test_graph() {
 
 
 int main() {
+    test_vertex_and_properties();
     test_graph();
     return 0;
 }
