@@ -31,15 +31,11 @@ typedef enum {
  */
 typedef enum {
     PROP_INT_T,
-    PROP_INT_A_T,
     PROP_FLOAT_T,
-    PROP_FLOAT_A_T,
     PROP_STRING_T,
     PROP_CHAR_T,
     PROP_DOUBLE_T,
-    PROP_DOUBLE_A_T,
     PROP_BOOL_T,
-    PROP_BOOL_A_T,
     PROP_UNDEFINED,
 } PROPERTY_T;
 
@@ -51,15 +47,11 @@ typedef enum {
  */
 typedef union {
     int *i;
-    int **ia;
     float *f;
-    float **fa;
-    char **s;
+    char *s;
     char *c;
     double *d;
-    double **da;
     bool *b;
-    bool **ba;
     void *ud;
 } FLEXIBLE_T;
 
@@ -139,13 +131,19 @@ void vertex_add_property(vertex *n, char *property_name, char *property_type, vo
 
 edge *create_edge(vertex *start_vertex, vertex *end_node, bool directed, ERROR_CODE *error);
 
-vertex *find_vertex_by_id(char *id);
+FLEXIBLE_T *create_value_by_type(PROPERTY_T p_type, void *p_value);
+
+PROPERTY_T find_property_type(char *property_type);
+
+vertex *find_vertex_by_id(graph *g, uint64_t id, ERROR_CODE *e);
 
 vertex *find_vertex_by_label_property(char *label, char *property, void *value);
 
-vertex *update_vertex(vertex *n, char *property, void *value);
-
 graph *create_graph(char *graph_name, char *graph_path, ERROR_CODE *error);
+
+int find_index_vertex_adj_list(graph *g, uint64_t id);
+
+int find_vertex_adj_of_vertex(graph *g, int graph_index, uint64_t id, ERROR_CODE *e);
 
 void add_edge_to_graph(graph *g, vertex *v1, vertex *v2, edge *e, ERROR_CODE *error);
 

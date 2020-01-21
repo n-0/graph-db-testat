@@ -3,4 +3,4 @@ project(graph_db_testat C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(graph_db_testat main.c graph.c graph.h)
+add_executable(graph_db_testat main.c graph.c graph.h ops.c ops.h)

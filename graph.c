@@ -24,24 +24,16 @@ uint64_t MAX_ID;
 PROPERTY_T find_property_type(char *property_type) {
     if (strncasecmp(property_type, "INT", sizeof("INT")) == 0) {
         return PROP_INT_T;
-    } else if (strncasecmp(property_type, "INT_A", sizeof("INT_A")) == 0) {
-        return PROP_INT_A_T;
     } else if (strncasecmp(property_type, "FLOAT", sizeof("FLOAT")) == 0) {
         return PROP_FLOAT_T;
-    } else if (strncasecmp(property_type, "FLOAT_A", sizeof("FLOAT_A")) == 0) {
-        return PROP_FLOAT_A_T;
     } else if (strncasecmp(property_type, "STRING", sizeof("STRING")) == 0) {
         return PROP_STRING_T;
     } else if (strncasecmp(property_type, "CHAR", sizeof("CHAR")) == 0) {
         return PROP_CHAR_T;
     } else if (strncasecmp(property_type, "DOUBLE", sizeof("DOUBLE")) == 0) {
         return PROP_DOUBLE_T;
-    } else if (strncasecmp(property_type, "DOUBLE_A", sizeof("DOUBLE_A")) == 0) {
-        return PROP_DOUBLE_A_T;
     } else if (strncasecmp(property_type, "BOOL", sizeof("BOOL")) == 0) {
         return PROP_BOOL_T;
-    } else if (strncasecmp(property_type, "BOOL_A", sizeof("BOOL_A")) == 0) {
-        return PROP_BOOL_A_T;
     } else {
         return PROP_UNDEFINED;
     }
@@ -53,32 +45,20 @@ FLEXIBLE_T* create_value_by_type(PROPERTY_T p_type, void *p_value) {
         case PROP_INT_T:
             value->i = (int*) p_value;
             return value;
-        case PROP_INT_A_T:
-            value->ia = (int**) p_value;
-            return value;
         case PROP_FLOAT_T:
             value->f = (float*) p_value;
-            return value;
-        case PROP_FLOAT_A_T:
-            value->fa = (float**) p_value;
             return value;
         case PROP_CHAR_T:
             value->c = (char*) p_value;
             return value;
         case PROP_STRING_T:
-            value->s = (char **) p_value;
+            value->s = (char *) p_value;
             return value;
         case PROP_DOUBLE_T:
             value->d = (double*) p_value;
             return value;
-        case PROP_DOUBLE_A_T:
-            value->da = (double**) p_value;
-            return value;
         case PROP_BOOL_T:
             value->b = (bool*) p_value;
-            return value;
-        case PROP_BOOL_A_T:
-            value->ba = (bool**) p_value;
             return value;
         default:
             value->ud = p_value;
@@ -197,8 +177,12 @@ void vertex_add_property(vertex *v, char *property_name, char *property_type, vo
 int find_index_vertex_adj_list(graph *g, uint64_t id) {
     int i = 0;
     while (true) {
+        if (i == g->size_vertices) return -1;
+        if (g->vertices[i] == NULL) {
+            i++;
+            continue;
+        }
         if (g->vertices[i]->v_pointer->id == id) return i;
-        if (i > g->vertices[i]->list_size) return -1;
         i++;
     }
 }
@@ -337,5 +321,48 @@ void add_edge_to_graph(graph *g, vertex *v1, vertex *v2, edge *e, ERROR_CODE *er
                 return;
             }
         }
+    }
+}
+
+vertex *find_vertex_by_(graph *g, uint64_t id, ERROR_CODE *e) {
+    vertex *v;
+    int i = 0;
+    while (true) {
+        if (i == g->size_vertices) {
+            *e = NOT_FOUND;
+            return v;
+        }
+        if (g->vertices[i]->v_pointer->id == id) {
+            v = g->vertices[i]->v_pointer;
+            break;
+        }
+        i++;
+    }
+    return v;
+}
+
+/**
+ * find_vertex_adj_of_vertex finds
+ * the index of the id (from a vertex) in
+ * the adjacency list of another vertex
+ * @param g
+ * @param graph_index
+ * @param id
+ * @param e
+ * @return
+ */
+int find_vertex_adj_of_vertex(graph *g, int graph_index, uint64_t id, ERROR_CODE *e) {
+    int i = 0;
+    while (true) {
+        if (i == g->vertices[graph_index]->list_size) {
+            *e = NOT_FOUND;
+            return -1;
+        }
+        if (!g->vertices[graph_index]->list[i]) {
+            i++;
+            continue;
+        }
+        if (g->vertices[graph_index]->list[i]->id == id) return i;
+        i++;
     }
 }
