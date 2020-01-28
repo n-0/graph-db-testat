@@ -4,7 +4,9 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdbool.h>
+#include "hashmap.h";
 #include "ops.h"
 
 
@@ -190,6 +192,19 @@ bool check_flexible_equal(FLEXIBLE_T *f1, FLEXIBLE_T *f2, PROPERTY_T type) {
     }
 }
 
+/**
+ * search_by_property returns
+ * a list of all nodes
+ * having the same named property
+ * and type that are matching
+ * exactly the value.
+ * @param g
+ * @param property_name
+ * @param property_type
+ * @param property_value
+ * @param e
+ * @return
+ */
 vertex **search_by_property(graph *g, char *property_name, char *property_type, void *property_value, ERROR_CODE *e) {
     vertex **found = (vertex **) malloc(10 * sizeof(vertex **));
     int found_size = 0;
@@ -216,3 +231,124 @@ vertex **search_by_property(graph *g, char *property_name, char *property_type, 
     return found;
 }
 
+/**
+ * id_to_string converts an
+ * id to a char pointer (string).
+ * @param id
+ * @return
+ */
+char *id_to_string(uint64_t id) {
+    char *cast_id = (char *) malloc(222 * sizeof(char));
+    sprintf(cast_id, "%lu", id);
+    return cast_id;
+}
+
+/**
+ * vertex_in_hashmap checks
+ * if vertex is in hashmap.
+ * @param hashmap
+ * @param idc
+ * @return
+ */
+bool vertex_in_hashmap(map_t hashmap, char *idc) {
+    // is done this unnecessary way because of hashmap.h
+    bool pre_in_visited = false;
+    bool *in_visited = &pre_in_visited;
+    return hashmap_get(hashmap, idc, (void **) &in_visited) == MAP_OK;
+}
+
+/**
+ * breadth_search searches for
+ * a vertex with given id
+ * per breadth first search
+ * algorithm.
+ * @param g
+ * @param id
+ * @param e
+ * @return
+ */
+vertex *breadth_search(graph *g, uint64_t id, ERROR_CODE *e) {
+    // check first vertex in graph and if not needed
+    // start searching from there
+    if (g->vertices[0]->v_pointer->id == id) {
+        return g->vertices[0]->v_pointer;
+    }
+    vertex **queue = (vertex **) malloc(g->size_vertices * sizeof(vertex *));
+    queue[0] = g->vertices[0]->v_pointer;
+    int queue_size = 1;
+    map_t visited = hashmap_new();
+    bool was_there = true;
+    hashmap_put(visited, id_to_string(g->vertices[0]->v_pointer->id), &was_there);
+    // check vertex in queue and their adjacent vertices
+    for (int j = 0; j < queue_size; j++) {
+        int index_of_vertex = find_index_vertex_adj_list(g, queue[j]->id);
+        // go through adjacency list of vertex
+        for (int i = 0; i < g->vertices[index_of_vertex]->list_size; i++) {
+            // dont free idcv use hashmap_free()
+            char *idcv = id_to_string(g->vertices[index_of_vertex]->list[i]->id);
+            if (vertex_in_hashmap(visited, idcv) == true) {
+                continue;
+            }
+            if (g->vertices[index_of_vertex]->list[i]->id == id) {
+                return g->vertices[index_of_vertex]->list[i];
+            }
+            hashmap_put(visited, idcv, &was_there);
+            queue[queue_size++] = g->vertices[0]->list[i];
+        }
+    }
+    hashmap_free(visited);
+    free(queue);
+    *e = NOT_FOUND;
+    // free this if e is NOT_FOUND
+    vertex *v = (vertex *) malloc(sizeof(vertex));
+    return v;
+}
+
+/**
+ * depth_search searches for
+ * a vertex with given id
+ * per depth first search
+ * algorithm.
+ * @param g
+ * @param id
+ * @param e
+ * @return
+ */
+vertex *depth_search(graph *g, uint64_t id, ERROR_CODE *e) {
+    // check first vertex in graph and if not needed
+    // start searching from there
+    bool was_there = true;
+    adjacency_list **queue = (adjacency_list **) malloc(g->size_vertices * sizeof(adjacency_list *));
+    queue[0] = g->vertices[0];
+    int queue_size = 1;
+    map_t visited = hashmap_new();
+    int i;
+    while (i > -1) {
+        i = queue_size - 1;
+        adjacency_list *current_adj = queue[i];
+        char *cid = id_to_string(current_adj->v_pointer->id);
+        if (current_adj->v_pointer->id == id) {
+            hashmap_free(visited);
+            free(queue);
+            return current_adj->v_pointer;
+        }
+        if (vertex_in_hashmap(visited, cid)) {
+            queue_size--;
+            continue;
+        }
+        hashmap_put(visited, cid, &was_there);
+        vertex_in_hashmap(visited, cid);
+        for (int j = 0; j < current_adj->list_size; j++) {
+            adjacency_list *next_adjs = g->vertices[find_index_vertex_adj_list(g, current_adj->list[j]->id)];
+            if (vertex_in_hashmap(visited, id_to_string(next_adjs->v_pointer->id))) {
+                continue;
+            }
+            queue[queue_size++] = next_adjs;
+        }
+    }
+    hashmap_free(visited);
+    free(queue);
+    *e = NOT_FOUND;
+    vertex *v = (vertex *) malloc(sizeof(vertex));
+    return v;
+}

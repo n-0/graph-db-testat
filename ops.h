@@ -17,4 +17,8 @@ void delete_edge(graph *g, edge *e, ERROR_CODE *error);
 
 vertex **search_by_property(graph *g, char *property_name, char *property_type, void *property_value, ERROR_CODE *e);
 
+vertex *breadth_search(graph *g, uint64_t id, ERROR_CODE *e);
+
+vertex *depth_search(graph *g, uint64_t id, ERROR_CODE *e);
+
 #endif //GRAPH_DB_TESTAT_OPS_H

@@ -169,7 +169,7 @@ void vertex_add_property(vertex *v, char *property_name, char *property_type, vo
 /**
  * find_index_vertex_adj_list finds
  * the index of a vertex pointer
- * in a list of vertices.
+ * in the graphs list of vertices.
  * @param list_vertices
  * @param id
  * @return
@@ -201,6 +201,14 @@ int find_index_edge(vertex **list_edge, uint64_t id) {
     return i;
 }
 
+/**
+ * allocate_vertex_graph resizes
+ * the list of vertices for
+ * adding a new one to the graph.
+ * @param g
+ * @param v
+ * @param error
+ */
 void allocate_vertex_graph(graph *g, vertex *v, ERROR_CODE *error) {
     adjacency_list **new_start = realloc(g->vertices, g->size_vertices + 1);
     if (new_start == NULL) {
@@ -272,6 +280,14 @@ graph *create_graph(char *graph_name, char *graph_path, ERROR_CODE *error) {
     return g;
 }
 
+/**
+ * add_vertex_to_graph adds
+ * the given vertex to
+ * the list of vertices.
+ * @param g
+ * @param v
+ * @param error
+ */
 void add_vertex_to_graph(graph *g, vertex *v, ERROR_CODE *error) {
     allocate_vertex_graph(g, v, error);
     if (*error != NO_ERROR) return;
@@ -285,6 +301,18 @@ void add_vertex_to_graph(graph *g, vertex *v, ERROR_CODE *error) {
     g->size_vertices++;
 }
 
+/**
+ * add_edge_to_graph adds
+ * the edge struct to its
+ * vertices and connects
+ * the vertices by their
+ * adjacency list.
+ * @param g
+ * @param v1
+ * @param v2
+ * @param e
+ * @param error
+ */
 void add_edge_to_graph(graph *g, vertex *v1, vertex *v2, edge *e, ERROR_CODE *error) {
     allocate_edge_vertex(v1, e, error);
     if (*error != NO_ERROR) {
@@ -324,6 +352,14 @@ void add_edge_to_graph(graph *g, vertex *v1, vertex *v2, edge *e, ERROR_CODE *er
     }
 }
 
+/**
+ * don't know the purpose
+ * for this anymore.
+ * @param g
+ * @param id
+ * @param e
+ * @return
+ */
 vertex *find_vertex_by_(graph *g, uint64_t id, ERROR_CODE *e) {
     vertex *v;
     int i = 0;
