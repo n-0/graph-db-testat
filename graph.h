@@ -18,6 +18,7 @@ typedef char key_value[2][MAX_STRING];
 typedef enum {
     NO_ERROR,
     STRING_TOO_BIG,
+    WRITE_ERROR,
     INCORRECT_TYPE,
     NOT_FOUND,
     OUT_OF_MEMORY,

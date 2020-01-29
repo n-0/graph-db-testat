@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include "hashmap.h";
+#include "hashmap.h"
 #include "ops.h"
 
 

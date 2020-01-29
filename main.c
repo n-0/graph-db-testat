@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "graph.h"
 #include "ops.h"
+#include "storage.h"
 
 /**
  * TODO (DIFFICULT)
@@ -218,10 +219,50 @@ void test_breadth_depth_search() {
     }
 }
 
+void test_save_db() {
+    ERROR_CODE error = NO_ERROR;
+    char *graph_name = "testgraph";
+    char *graph_path = "testdb.xml";
+    graph *g = create_graph(graph_name, graph_path, &error);
+    if (error != NO_ERROR) {
+        printf("test_save_db save_db: failed (indirect)\n");
+        return;
+    }
+    vertex *v1 = create_vertex("person1", &error);
+    vertex *v2 = create_vertex("person1", &error);
+    if (error != NO_ERROR) {
+        printf("test_save_db save_db: failed (indirect)\n");
+        return;
+    }
+    add_vertex_to_graph(g, v1, &error);
+    add_vertex_to_graph(g, v2, &error);
+    if (error != NO_ERROR) {
+        printf("test_save_db save_db: failed (indirect)\n");
+        return;
+    }
+    edge *e = create_edge(v1, v2, false, &error);
+    if (error != NO_ERROR) {
+        printf("test_save_db save_db: failed (indirect)\n");
+        return;
+    }
+    add_edge_to_graph(g, v1, v2, e, &error);
+    if (error != NO_ERROR) {
+        printf("test_save_db save_db: failed (indirect)\n");
+        return;
+    }
+    save_db(g, &error);
+    if (error != NO_ERROR) {
+        printf("test_save_db save_db: failed\n");
+        return;
+    }
+    printf("test_save_db save_db: success\n");
+}
+
 
 int main() {
     //test_vertex_and_properties();
     //test_graph();
-    test_breadth_depth_search();
+    //test_breadth_depth_search();
+    test_save_db();
     return 0;
 }

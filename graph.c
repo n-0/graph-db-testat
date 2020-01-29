@@ -139,7 +139,7 @@ vertex *create_vertex(char *label, ERROR_CODE *error) {
     v->label = label;
     v->property_names = (char **) malloc(20 * MAX_STRING * sizeof(char *));
     v->property_types = (PROPERTY_T *) malloc(20 * sizeof(PROPERTY_T));
-    v->property_values = (FLEXIBLE_T *) malloc(20 * sizeof(FLEXIBLE_T));
+    v->property_values = (FLEXIBLE_T **) malloc(20 * sizeof(FLEXIBLE_T *));
     return v;
 
     error_no_id:

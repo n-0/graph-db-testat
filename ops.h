@@ -6,6 +6,7 @@
 #define GRAPH_DB_TESTAT_OPS_H
 
 #include "graph.h"
+#include "hashmap.h"
 
 void update_vertex_property(vertex *v, char *property_name, void *property_value, ERROR_CODE *e);
 
@@ -20,5 +21,9 @@ vertex **search_by_property(graph *g, char *property_name, char *property_type, 
 vertex *breadth_search(graph *g, uint64_t id, ERROR_CODE *e);
 
 vertex *depth_search(graph *g, uint64_t id, ERROR_CODE *e);
+
+char *id_to_string(uint64_t id);
+
+bool vertex_in_hashmap(map_t hashmap, char *idc);
 
 #endif //GRAPH_DB_TESTAT_OPS_H
