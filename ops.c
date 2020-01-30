@@ -84,7 +84,6 @@ void delete_edge(graph *g, edge *e, ERROR_CODE *error) {
     free(g->vertices[end_index]->list[start_in_end_index]);
     g->vertices[end_index]->list[start_in_end_index] = NULL;
 
-
     // Remove edge in edges list of vertices
     for (int i = 0; i < g->vertices[start_index]->v_pointer->edges_size; i++) {
         if (g->vertices[start_index]->v_pointer->edges[i]->id == e->id) {

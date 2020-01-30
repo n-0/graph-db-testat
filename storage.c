@@ -92,9 +92,10 @@ char *cast_type_string(PROPERTY_T p_type) {
  * @param e
  */
 void save_db(graph *g, ERROR_CODE *e) {
+    bool was_there = true;
     int rc;
     xmlTextWriterPtr writer;
-    char *uri = (char *) malloc(strlen(g->path) * sizeof(char));
+    char *uri = (char *) malloc((strlen(g->path) + 1) * sizeof(char));
     strncpy(uri, g->path, strlen(g->path));
     writer = xmlNewTextWriterFilename(uri, 0);
     free(uri);
@@ -112,6 +113,11 @@ void save_db(graph *g, ERROR_CODE *e) {
         *e = WRITE_ERROR;
         return;
     }
+    rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "xmlns", BAD_CAST "http://graphml.graphdrawing.org/xmlns");
+    if (rc < 0) {
+        *e = WRITE_ERROR;
+        return;
+    }
     rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "xmlns:xsi",
                                      BAD_CAST "http://www.w3.org/2001/XMLSchema-instance");
     if (rc < 0) {
@@ -119,30 +125,92 @@ void save_db(graph *g, ERROR_CODE *e) {
         return;
     }
     rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "xsi:schemaLocation",
-                                     BAD_CAST "http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd>");
+                                     BAD_CAST "http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd");
     if (rc < 0) {
         *e = WRITE_ERROR;
         return;
     }
-    rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "xmlns", BAD_CAST "http://graphml.graphdrawing.org/xmlns");
+    rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "xmlns:y", BAD_CAST "http://www.yworks.com/xml/graphml");
     if (rc < 0) {
         *e = WRITE_ERROR;
         return;
     }
+    rc = xmlTextWriterStartElement(writer, BAD_CAST "key");
+    if (rc < 0) {
+        *e = WRITE_ERROR;
+        return;
+    }
+    rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "for", BAD_CAST "node");
+    if (rc < 0) {
+        *e = WRITE_ERROR;
+        return;
+    }
+    rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "id", BAD_CAST "d3");
+    if (rc < 0) {
+        *e = WRITE_ERROR;
+        return;
+    }
+    rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "yfiles.type", BAD_CAST "nodegraphics");
+    if (rc < 0) {
+        *e = WRITE_ERROR;
+        return;
+    }
+    rc = xmlTextWriterEndElement(writer);
+    if (rc < 0) {
+        *e = WRITE_ERROR;
+        return;
+    }
+    map_t added_props = hashmap_new();
+    for (int i = 0; i < g->size_vertices; i++) {
+        vertex *v = g->vertices[i]->v_pointer;
+        for (int p = 0; p < v->property_size; p++) {
+            if (!vertex_in_hashmap(added_props, v->property_names[p])) {
+                hashmap_put(added_props, v->property_names[p], &was_there);
+                rc = xmlTextWriterStartElement(writer, BAD_CAST "key");
+                if (rc < 0) {
+                    *e = WRITE_ERROR;
+                    return;
+                }
+                rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "for", BAD_CAST "node");
+                if (rc < 0) {
+                    *e = WRITE_ERROR;
+                    return;
+                }
+                rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "id", BAD_CAST v->property_names[p]);
+                if (rc < 0) {
+                    *e = WRITE_ERROR;
+                    return;
+                }
+                rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "attr.name", BAD_CAST v->property_names[p]);
+                if (rc < 0) {
+                    *e = WRITE_ERROR;
+                    return;
+                }
+                rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "attr.type", BAD_CAST "string");
+                if (rc < 0) {
+                    *e = WRITE_ERROR;
+                    return;
+                }
+                rc = xmlTextWriterEndElement(writer);
+                if (rc < 0) {
+                    *e = WRITE_ERROR;
+                    return;
+                }
+            }
+        }
+    }
+    hashmap_free(added_props);
     rc = xmlTextWriterStartElement(writer, BAD_CAST "graph");
     if (rc < 0) {
         *e = WRITE_ERROR;
         return;
     }
-    char *name = (char *) malloc(strlen(g->name) * sizeof(char));
-    strncpy(name, g->path, strlen(g->path));
-    rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "id", BAD_CAST name);
+    rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "id", BAD_CAST g->name);
     if (rc < 0) {
         *e = WRITE_ERROR;
         return;
     }
     map_t stored_edges = hashmap_new();
-    bool was_there = true;
     for (int i = 0; i < g->size_vertices; i++) {
         vertex *v = g->vertices[i]->v_pointer;
         rc = xmlTextWriterStartElement(writer, BAD_CAST "node");
@@ -155,14 +223,99 @@ void save_db(graph *g, ERROR_CODE *e) {
             *e = WRITE_ERROR;
             return;
         }
+        if (v->label) {
+            rc = xmlTextWriterStartElement(writer, BAD_CAST "data");
+            if (rc < 0) {
+                *e = WRITE_ERROR;
+                return;
+            }
+            rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "key", BAD_CAST "d3");
+            if (rc < 0) {
+                *e = WRITE_ERROR;
+                return;
+            }
+            rc = xmlTextWriterStartElement(writer, BAD_CAST "y:ShapeNode");
+            if (rc < 0) {
+                *e = WRITE_ERROR;
+                return;
+            }
+            rc = xmlTextWriterWriteFormatElement(writer, BAD_CAST "y:NodeLabel", "%s", v->label);
+            if (rc < 0) {
+                *e = WRITE_ERROR;
+                return;
+            }
+            /*
+            rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "alignment", BAD_CAST "center");
+            if (rc < 0) {
+                *e = WRITE_ERROR;
+                return;
+            }
+            rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "fontSize", BAD_CAST "13");
+            if (rc < 0) {
+                *e = WRITE_ERROR;
+                return;
+            }
+            rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "autoSizePolicy", BAD_CAST "content");
+            if (rc < 0) {
+                *e = WRITE_ERROR;
+                return;
+            }
+            */
+            rc = xmlTextWriterEndElement(writer);
+            if (rc < 0) {
+                *e = WRITE_ERROR;
+                return;
+            }
+
+            rc = xmlTextWriterEndElement(writer);
+            if (rc < 0) {
+                *e = WRITE_ERROR;
+                return;
+            }
+        }
         char *attr = (char *) malloc(666 * sizeof(char));
         for (int p_index = 0; p_index < v->property_size; p_index++) {
-            char *type_string = cast_type_string(v->property_types[p_index]);
             char *value_string = cast_value_string(v->property_types[p_index], v->property_values[p_index]);
-            sprintf(attr, "%s %s", v->property_names[p_index], type_string);
-            rc = xmlTextWriterWriteAttribute(writer, BAD_CAST attr, BAD_CAST value_string);
-            free(type_string);
-            free(value_string);
+            rc = xmlTextWriterStartElement(writer, BAD_CAST "data");
+            if (rc < 0) {
+                *e = WRITE_ERROR;
+                return;
+            }
+            rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "key", BAD_CAST v->property_names[p_index]);
+            if (rc < 0) {
+                *e = WRITE_ERROR;
+                return;
+            }
+            rc = xmlTextWriterWriteFormatString(writer, "%s", value_string);
+            if (rc < 0) {
+                *e = WRITE_ERROR;
+                return;
+            }
+            //char *type_string = cast_type_string(v->property_types[p_index]);
+            /*
+            rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "property_name", BAD_CAST v->property_names[p_index]);
+            if (rc < 0) {
+                *e = WRITE_ERROR;
+                return;
+            }
+            rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "property_type", BAD_CAST type_string);
+            if (rc < 0) {
+                *e = WRITE_ERROR;
+                return;
+            }
+            rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "property_value", BAD_CAST value_string);
+            if (rc < 0) {
+                *e = WRITE_ERROR;
+                return;
+            }
+             */
+            //sprintf(attr, "%s %s", v->property_names[p_index], type_string);
+            //rc = xmlTextWriterWriteAttribute(writer, BAD_CAST attr, BAD_CAST value_string);
+            // CRITICAL EXECUTION
+            //free(type_string);
+            // CRITICAL EXECUTION
+            //free(value_string);
+            rc = xmlTextWriterEndElement(writer);
             if (rc < 0) {
                 *e = WRITE_ERROR;
                 return;
@@ -198,7 +351,7 @@ void save_db(graph *g, ERROR_CODE *e) {
                 *e = WRITE_ERROR;
                 return;
             }
-            free(edge_id);
+            //free(edge_id);
             rc = xmlTextWriterEndElement(writer);
             if (rc < 0) {
                 *e = WRITE_ERROR;
@@ -207,6 +360,7 @@ void save_db(graph *g, ERROR_CODE *e) {
         }
         free(attr);
     }
+    hashmap_free(stored_edges);
     rc = xmlTextWriterEndElement(writer);
     if (rc < 0) {
         *e = WRITE_ERROR;

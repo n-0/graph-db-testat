@@ -263,19 +263,15 @@ void allocate_edge_vertex(vertex *v, edge *e, ERROR_CODE *error) {
  */
 graph *create_graph(char *graph_name, char *graph_path, ERROR_CODE *error) {
     graph *g = (graph *) malloc(sizeof(graph));
-    char g_name[MAX_STRING];
-    char g_path[MAX_STRING];
     if (strlen(graph_name) > MAX_STRING) {
         *error = STRING_TOO_BIG;
         return g;
     }
-    strncpy(g_name, graph_name, MAX_STRING - 1);
-    strncpy(g_path, graph_path, MAX_STRING - 1);
     uint64_t id = create_id(error);
     if (*error != NO_ERROR) return g;
     g->id = id;
-    g->name = g_name;
-    g->path = g_path;
+    g->name = graph_name;
+    g->path = graph_path;
     g->size_vertices = 0;
     return g;
 }

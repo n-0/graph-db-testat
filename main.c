@@ -3,6 +3,7 @@
 #include "graph.h"
 #include "ops.h"
 #include "storage.h"
+#include <string.h>
 
 /**
  * TODO (DIFFICULT)
@@ -221,21 +222,28 @@ void test_breadth_depth_search() {
 
 void test_save_db() {
     ERROR_CODE error = NO_ERROR;
-    char *graph_name = "testgraph";
-    char *graph_path = "testdb.xml";
+    char *graph_name = "marcus_graph";
+    char *graph_path = "testdb.graphml";
     graph *g = create_graph(graph_name, graph_path, &error);
     if (error != NO_ERROR) {
         printf("test_save_db save_db: failed (indirect)\n");
         return;
     }
     vertex *v1 = create_vertex("person1", &error);
-    vertex *v2 = create_vertex("person1", &error);
+    vertex *v2 = create_vertex("person2", &error);
+    vertex *v3 = create_vertex("person3", &error);
+    vertex *v4 = create_vertex("person4", &error);
+    char *name = "jorgos";
+    char *p_name = "name";
+    vertex_add_property(v4, p_name, "STRING", (void *) name);
     if (error != NO_ERROR) {
         printf("test_save_db save_db: failed (indirect)\n");
         return;
     }
     add_vertex_to_graph(g, v1, &error);
     add_vertex_to_graph(g, v2, &error);
+    add_vertex_to_graph(g, v3, &error);
+    add_vertex_to_graph(g, v4, &error);
     if (error != NO_ERROR) {
         printf("test_save_db save_db: failed (indirect)\n");
         return;
